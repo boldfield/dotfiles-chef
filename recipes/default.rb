@@ -28,25 +28,43 @@ git install_dir do
   group group
 end
 
-# Support links nested up to two dirs deep
-(0..2).each do |i|
-  to_link_glob = "#{install_dir}/#{'*/' * i}*.symlink"
-  ::Dir.glob(to_link_glob).map do |f|
-    link_name = ::File.basename(f, '.symlink')
-    link_path = f.sub("#{install_dir}/", '').sub("#{link_name}.symlink", '')
-
-    directory "#{home_dir}/#{link_path}" do
+evaluate_targets(home_dir, install_dir, 'symlink').each do |name, rel_path|
+  # Create parent directory for links if required
+  if rel_path != '/'
+    directory "#{home_dir}/#{rel_path}" do
       recursive true
       owner node['dotfiles']['user']
       group group
     end
+  end
 
-    # Intentionally letting this fail if a file already exists at the target
-    # until there's a better way to deal
-    link "#{home_dir}/#{link_path}.#{link_name}" do
-      to f
-      owner node['dotfiles']['user']
-      group group
+  # Intentionally letting this fail if a file already exists at the target
+  # until there's a better way to deal
+  link "#{home_dir}/#{rel_path}.#{name}" do
+    to f
+    owner node['dotfiles']['user']
+    group group
+  end
+end
+
+evaluate_targets(home_dir, install_dir, 'mkdir').each do |name, rel_path|
+  directory "#{home_dir}/#{rel_path}#{name}" do
+    recursive true
+    owner node['dotfiles']['user']
+    group group
+  end
+end
+
+def evaluate_targets(home, base_dir, type)
+  # Support nesting up to two dirs deep
+  ret = []
+  (0..2).each do |i|
+    glob = "#{install_dir}/#{'*/' * i}*.#{type}"
+    ::Dir.glob(glob).map do |f|
+      name = ::File.basename(f, ".#{type}")
+      rel_path = f.sub("#{install_dir}/", '').sub("#{link_name}.#{type}", '')
+      ret << [name, rel_path]
     end
+    ret
   end
 end
