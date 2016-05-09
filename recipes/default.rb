@@ -15,7 +15,7 @@ def evaluate_targets(home, base_dir, type)
     ::Dir.glob(glob).map do |f|
       name = ::File.basename(f, ".#{type}")
       rel_path = f.sub("#{base_dir}/", '').sub("#{name}.#{type}", '')
-      ret << [name, rel_path]
+      ret << [name, rel_path, f]
     end
     ret
   end
@@ -44,7 +44,7 @@ git install_dir do
   group group
 end
 
-evaluate_targets(home_dir, install_dir, 'symlink').each do |name, rel_path|
+evaluate_targets(home_dir, install_dir, 'symlink').each do |name, rel_path, target|
   # Create parent directory for links if required
   if rel_path != '/'
     directory "#{home_dir}/#{rel_path}" do
@@ -57,13 +57,13 @@ evaluate_targets(home_dir, install_dir, 'symlink').each do |name, rel_path|
   # Intentionally letting this fail if a file already exists at the target
   # until there's a better way to deal
   link "#{home_dir}/#{rel_path}.#{name}" do
-    to f
+    to target
     owner node['dotfiles']['user']
     group group
   end
 end
 
-evaluate_targets(home_dir, install_dir, 'mkdir').each do |name, rel_path|
+evaluate_targets(home_dir, install_dir, 'mkdir').each do |name, rel_path, _|
   directory "#{home_dir}/#{rel_path}#{name}" do
     recursive true
     owner node['dotfiles']['user']
