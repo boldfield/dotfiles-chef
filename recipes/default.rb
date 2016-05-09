@@ -5,6 +5,22 @@
 # Copyright (C) 2016 Brian Oldfield
 #
 #
+
+# Move into library
+def evaluate_targets(home, base_dir, type)
+  # Support nesting up to two dirs deep
+  ret = []
+  (0..2).each do |i|
+    glob = "#{install_dir}/#{'*/' * i}*.#{type}"
+    ::Dir.glob(glob).map do |f|
+      name = ::File.basename(f, ".#{type}")
+      rel_path = f.sub("#{install_dir}/", '').sub("#{link_name}.#{type}", '')
+      ret << [name, rel_path]
+    end
+    ret
+  end
+end
+
 home_dir = case node.platform_family
               when 'mac_os_x'
                 "/Users/#{node['dotfiles']['user']}"
@@ -52,19 +68,5 @@ evaluate_targets(home_dir, install_dir, 'mkdir').each do |name, rel_path|
     recursive true
     owner node['dotfiles']['user']
     group group
-  end
-end
-
-def evaluate_targets(home, base_dir, type)
-  # Support nesting up to two dirs deep
-  ret = []
-  (0..2).each do |i|
-    glob = "#{install_dir}/#{'*/' * i}*.#{type}"
-    ::Dir.glob(glob).map do |f|
-      name = ::File.basename(f, ".#{type}")
-      rel_path = f.sub("#{install_dir}/", '').sub("#{link_name}.#{type}", '')
-      ret << [name, rel_path]
-    end
-    ret
   end
 end
