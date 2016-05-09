@@ -15,6 +15,7 @@ def evaluate_targets(home, base_dir, type)
     ::Dir.glob(glob).map do |f|
       name = ::File.basename(f, ".#{type}")
       rel_path = f.sub("#{base_dir}/", '').sub("#{name}.#{type}", '')
+      rel_path = ".#{rel_path}" unless rel_path.empty?
       ret << [name, rel_path, f]
     end
   end
@@ -46,7 +47,7 @@ end
 
 evaluate_targets(home_dir, install_dir, 'symlink').each do |name, rel_path, target|
   # Create parent directory for links if required
-  if rel_path != '/'
+  unless rel_path.empty?
     directory "#{home_dir}/#{rel_path}" do
       recursive true
       owner node['dotfiles']['user']
