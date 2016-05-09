@@ -17,8 +17,8 @@ def evaluate_targets(home, base_dir, type)
       rel_path = f.sub("#{base_dir}/", '').sub("#{name}.#{type}", '')
       ret << [name, rel_path, f]
     end
-    ret
   end
+  ret
 end
 
 home_dir = case node.platform_family
