@@ -11,10 +11,10 @@ def evaluate_targets(home, base_dir, type)
   # Support nesting up to two dirs deep
   ret = []
   (0..2).each do |i|
-    glob = "#{install_dir}/#{'*/' * i}*.#{type}"
+    glob = "#{base_dir}/#{'*/' * i}*.#{type}"
     ::Dir.glob(glob).map do |f|
       name = ::File.basename(f, ".#{type}")
-      rel_path = f.sub("#{install_dir}/", '').sub("#{link_name}.#{type}", '')
+      rel_path = f.sub("#{base_dir}/", '').sub("#{name}.#{type}", '')
       ret << [name, rel_path]
     end
     ret

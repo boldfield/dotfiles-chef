@@ -4,6 +4,6 @@ maintainer_email 'YOUR_EMAIL'
 license          'All rights reserved'
 description      'Installs/Configures dotfiles'
 long_description 'Installs/Configures dotfiles'
-version          '0.1.5'
+version          '0.1.6'
 
 depends 'git'
