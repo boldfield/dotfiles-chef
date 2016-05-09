@@ -16,6 +16,7 @@ def evaluate_targets(home, base_dir, type)
       name = ::File.basename(f, ".#{type}")
       rel_path = f.sub("#{base_dir}/", '').sub("#{name}.#{type}", '')
       rel_path = ".#{rel_path}" unless rel_path.empty?
+      rel_path.gsub!('.symlink', '')
       ret << [name, rel_path, f]
     end
   end
