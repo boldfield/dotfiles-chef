@@ -5,6 +5,9 @@
 # Copyright (C) 2016 Brian Oldfield
 #
 #
+# /Users/boldfield/Library/Preferences/com.mizage.Divvy.plist
+#
+# /Users/boldfield/.dotfiles/Library/Preferences/com.mizage.Divvy.plist
 
 # Move into library
 def evaluate_targets(home, base_dir, type)
@@ -13,10 +16,9 @@ def evaluate_targets(home, base_dir, type)
   (0..2).each do |i|
     glob = "#{base_dir}/#{'*/' * i}*.#{type}"
     ::Dir.glob(glob).map do |f|
-      name = ::File.basename(f, ".#{type}")
+      name = ::File.basename(f, ".#{type}").sub('^dot.', '.')
       rel_path = f.sub("#{base_dir}/", '').sub("#{name}.#{type}", '')
-      rel_path = ".#{rel_path}" unless rel_path.empty?
-      rel_path.gsub!('.symlink', '')
+      rel_path.sub!('^dot.', '.').gsub!('.symlink', '')
       ret << [name, rel_path, f]
     end
   end
