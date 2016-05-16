@@ -9,23 +9,7 @@
 #
 # /Users/boldfield/.dotfiles/Library/Preferences/com.mizage.Divvy.plist
 
-# Move into library
-def evaluate_targets(home, base_dir, type)
-  # Support nesting up to two dirs deep
-  ret = []
-  (0..2).each do |i|
-    glob = "#{base_dir}/#{'*/' * i}*.#{type}"
-    ::Dir.glob(glob).map do |f|
-      name = ::File.basename(f, ".#{type}").sub('^dot.', '.')
-      rel_path = f.sub("#{base_dir}/", '').sub("#{name}.#{type}", '')
-      rel_path.sub!('^dot.', '.').gsub!('.symlink', '')
-      ret << [name, rel_path, f]
-    end
-  end
-  ret
-end
-
-home_dir = case node.platform_family
+home_dir = case node.platform
               when 'mac_os_x'
                 "/Users/#{node['dotfiles']['user']}"
               else
@@ -33,7 +17,7 @@ home_dir = case node.platform_family
               end
 install_dir = "#{home_dir}/.dotfiles"
 
-group = case node.platform_family
+group = case node.platform
         when 'mac_os_x'
           'staff'
         else
@@ -48,29 +32,33 @@ git install_dir do
   group group
 end
 
-evaluate_targets(home_dir, install_dir, 'symlink').each do |name, rel_path, target|
-  # Create parent directory for links if required
-  unless rel_path.empty?
-    directory "#{home_dir}/#{rel_path}" do
-      recursive true
+['global', node.platform].each do |tgt|
+  tgt_dir = "#{install_dir}/#{tgt}"
+  next unless ::Dir.exist?(tgt_dir)
+  Dotfiles.evaluate_links(home_dir, tgt_dir).each do |name, path, target|
+    # Create parent directory for links if required
+    unless path == home_dir
+      directory "#{path}" do
+        recursive true
+        owner node['dotfiles']['user']
+        group group
+      end
+    end
+
+    # Intentionally letting this fail if a file already exists at the target
+    # until there's a better way to deal
+    link "#{path}/#{name}" do
+      to target
       owner node['dotfiles']['user']
       group group
     end
   end
 
-  # Intentionally letting this fail if a file already exists at the target
-  # until there's a better way to deal
-  link "#{home_dir}/#{rel_path}.#{name}" do
-    to target
-    owner node['dotfiles']['user']
-    group group
-  end
-end
-
-evaluate_targets(home_dir, install_dir, 'mkdir').each do |name, rel_path, _|
-  directory "#{home_dir}/#{rel_path}#{name}" do
-    recursive true
-    owner node['dotfiles']['user']
-    group group
+  Dotfiles.evaluate_directories(home_dir, tgt_dir).each do |name, path, _|
+    directory "#{path}/#{name}" do
+      recursive true
+      owner node['dotfiles']['user']
+      group group
+    end
   end
 end
